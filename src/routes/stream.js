@@ -1,9 +1,14 @@
 import express from 'express';
 import { addClient } from '../lib/sse.js';
+import { readSession } from '../lib/auth.js';
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
+  const user = readSession(req);
+  if (!user || user.status !== 'approved') {
+    return res.status(401).json({ error: 'not_approved' });
+  }
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');

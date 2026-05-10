@@ -45,5 +45,25 @@ export function migrate() {
       scanner_filters TEXT,
       updated_at INTEGER
     );
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      google_sub TEXT UNIQUE,
+      email TEXT UNIQUE,
+      name TEXT,
+      picture TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at INTEGER,
+      approved_at INTEGER,
+      last_login_at INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
   `);
+
+  // Auto-approve owner email (only takes effect if user already signed in)
+  const ownerEmail = process.env.OWNER_EMAIL;
+  if (ownerEmail) {
+    db.prepare(
+      "UPDATE users SET status = 'approved', approved_at = COALESCE(approved_at, ?) WHERE email = ? AND status != 'approved'",
+    ).run(Date.now(), ownerEmail.toLowerCase());
+  }
 }

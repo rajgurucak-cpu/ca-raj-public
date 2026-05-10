@@ -844,8 +844,25 @@
           </svg>
           Telegram alerts
         </button>
+        <div id="userChip" style="display:none;align-items:center;gap:8px;padding:5px 8px 5px 5px;border:1px solid var(--purple-dim);border-radius:999px;background:rgba(168,85,247,.06);">
+          <img id="userPic" alt="" style="width:26px;height:26px;border-radius:50%;background:var(--bg-1);" />
+          <span id="userName" style="font-size:12px;color:var(--text-1);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          <a href="/auth/logout" title="Sign out" style="color:var(--text-2);text-decoration:none;font-size:11px;padding:2px 8px;border-left:1px solid var(--purple-dim);">Sign out</a>
+        </div>
       </div>
     </header>
+    <script>
+      fetch('/auth/me', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+        if (!d.user) return;
+        const chip = document.getElementById('userChip');
+        const pic = document.getElementById('userPic');
+        const nm = document.getElementById('userName');
+        if (d.user.picture) pic.src = d.user.picture;
+        else pic.style.display = 'none';
+        nm.textContent = (d.user.name || d.user.email || '').split(' ')[0];
+        chip.style.display = 'inline-flex';
+      });
+    </script>
 
     <!-- HERO -->
     <section class="hero">
@@ -1033,9 +1050,11 @@ async function api(path, opts = {}) {
     'x-device-id': state.deviceId,
     ...(opts.headers || {}),
   };
-  const res = await fetch(path, { ...opts, headers });
+  const res = await fetch(path, { ...opts, headers, credentials: 'same-origin' });
   let data = null;
   try { data = await res.json(); } catch (e) {}
+  if (res.status === 401) { window.location.href = '/login'; throw new Error('Not signed in'); }
+  if (res.status === 403 && data && data.error === 'not_approved') { window.location.href = '/pending'; throw new Error('Not approved'); }
   if (!res.ok) {
     const err = new Error((data && data.error) || res.statusText || ('HTTP ' + res.status));
     err.status = res.status;

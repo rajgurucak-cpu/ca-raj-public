@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in — CA RAJ Scanner Terminal</title>
+    <meta name="description" content="Sign in to access 31 Chartink-powered intraday scanners." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #0a0610;
+        --bg-1: #110a1c;
+        --bg-card: #15091f;
+        --line: #2a1a3d;
+        --purple: #a855f7;
+        --purple-deep: #7c3aed;
+        --purple-glow: #c084fc;
+        --purple-dim: #4a1d6e;
+        --text-0: #f3eafc;
+        --text-1: #c8b8de;
+        --text-2: #8e7eaa;
+        --text-3: #5e4f7a;
+        --bear: #ef4444;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        min-height: 100vh;
+        font-family: "Geist", system-ui, sans-serif;
+        background: var(--bg-0);
+        color: var(--text-0);
+      }
+      body {
+        background:
+          radial-gradient(1100px 700px at 70% -10%, rgba(168, 85, 247, 0.16), transparent 60%),
+          radial-gradient(900px 600px at -10% 110%, rgba(124, 58, 237, 0.18), transparent 60%),
+          var(--bg-0);
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+      }
+      .card {
+        max-width: 460px;
+        width: 100%;
+        background: linear-gradient(180deg, var(--bg-card), #0e0518);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 44px 36px;
+        box-shadow: 0 20px 80px rgba(124, 58, 237, 0.18), 0 0 0 1px rgba(168, 85, 247, 0.04) inset;
+        text-align: center;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .logo {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+        display: grid; place-items: center;
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: #fff;
+        box-shadow: 0 4px 24px rgba(168, 85, 247, 0.35);
+      }
+      .brand-name {
+        font-family: "Fraunces", serif;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      h1 {
+        font-family: "Fraunces", serif;
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        margin-bottom: 12px;
+      }
+      .lede {
+        color: var(--text-1);
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 32px;
+      }
+      .lede em {
+        color: var(--purple-glow);
+        font-style: normal;
+        font-family: "Fraunces", serif;
+      }
+      .gbtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 22px;
+        border-radius: 12px;
+        background: #fff;
+        color: #1f1f1f;
+        text-decoration: none;
+        font-family: "Geist", sans-serif;
+        font-weight: 500;
+        font-size: 15px;
+        border: 1px solid #dadce0;
+        transition: box-shadow 0.18s ease, transform 0.12s ease;
+        cursor: pointer;
+      }
+      .gbtn:hover { box-shadow: 0 4px 16px rgba(168, 85, 247, 0.25); transform: translateY(-1px); }
+      .gbtn:active { transform: translateY(0); }
+      .gbtn svg { flex: 0 0 auto; }
+      .approval-note {
+        margin-top: 28px;
+        padding: 14px 16px;
+        background: rgba(168, 85, 247, 0.06);
+        border: 1px solid var(--purple-dim);
+        border-radius: 10px;
+        color: var(--text-1);
+        font-size: 12.5px;
+        line-height: 1.55;
+      }
+      .approval-note strong { color: var(--purple-glow); font-weight: 600; }
+      .footer {
+        margin-top: 24px;
+        font-size: 11px;
+        color: var(--text-3);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .err {
+        margin-top: 16px;
+        padding: 10px 14px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+        border-radius: 8px;
+        font-size: 13px;
+        display: none;
+      }
+      .err.show { display: block; }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="main">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">R</div>
+        <div class="brand-name">CA RAJ Scanner</div>
+      </div>
+      <h1>Sign in to continue</h1>
+      <p class="lede">
+        31 Chartink-powered intraday scanners.<br />
+        <em>One pulse on the market.</em>
+      </p>
+      <a class="gbtn" id="googleBtn" href="/auth/google/login">
+        <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4.5 24 4.5 12.7 4.5 3.5 13.7 3.5 25S12.7 45.5 24 45.5 44.5 36.3 44.5 25c0-1.5-.2-3-.5-4.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4.5 24 4.5 16.3 4.5 9.7 8.6 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 45.5c5.2 0 10-2 13.5-5.2l-6.2-5.2c-2 1.4-4.5 2.3-7.3 2.3-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 41.3 16.2 45.5 24 45.5z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.8 36.6 44.5 31.3 44.5 25c0-1.5-.2-3-.5-4.5z"/>
+        </svg>
+        Continue with Google
+      </a>
+      <div class="err" id="err"></div>
+      <div class="approval-note">
+        <strong>Approval required.</strong> After you sign in, the owner will review your request. You'll get access once approved.
+      </div>
+      <div class="footer">CA RAJ — Scanner Terminal</div>
+    </main>
+    <script>
+      // Surface OAuth error messages forwarded via ?error=
+      const url = new URL(window.location.href);
+      const err = url.searchParams.get('error');
+      if (err) {
+        const el = document.getElementById('err');
+        el.textContent = 'Sign-in error: ' + err;
+        el.classList.add('show');
+      }
+    </script>
+  </body>
+</html>

@@ -214,6 +214,22 @@
         </div>
 
         <div class="card">
+          <h3 style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+            <span>Users <span id="pendingBadge" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:var(--gold);padding:3px 9px;border-radius:999px;margin-left:8px;">0 pending</span></span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);">
+              <a href="#" id="filterAll" class="flink active">All</a> &middot;
+              <a href="#" id="filterPending" class="flink">Pending</a> &middot;
+              <a href="#" id="filterApproved" class="flink">Approved</a> &middot;
+              <a href="#" id="filterRejected" class="flink">Rejected</a>
+            </span>
+          </h3>
+          <table>
+            <thead><tr><th>User</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="userRows"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px;">No users yet.</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="card">
           <h3>Scanners</h3>
           <table>
             <thead><tr><th>Name / Cat</th><th>Tier</th><th>Live</th><th>Webhook URL</th><th>Actions</th></tr></thead>
@@ -222,6 +238,22 @@
         </div>
       </div>
     </div>
+
+    <style>
+      .flink { color: var(--text-2); text-decoration: none; padding: 2px 4px; border-radius: 4px; }
+      .flink:hover { color: var(--text-0); }
+      .flink.active { color: var(--purple-glow); }
+      .pill { display:inline-block; padding: 3px 9px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; font-weight: 500; }
+      .pill.pending { background: rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.4); color: var(--gold); }
+      .pill.approved { background: rgba(16,217,126,.12); border:1px solid rgba(16,217,126,.4); color: var(--bull); }
+      .pill.rejected { background: rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); color: var(--bear); }
+      .uavatar { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-1); object-fit: cover; vertical-align: middle; margin-right: 8px; }
+      .ubtn { padding: 5px 10px; border-radius: 7px; font-size: 11.5px; font-family: 'Geist', sans-serif; cursor: pointer; border: 1px solid var(--purple-dim); background: rgba(168,85,247,.08); color: var(--purple-glow); margin-right: 4px; }
+      .ubtn:hover { background: rgba(168,85,247,.16); border-color: var(--purple); color: var(--text-0); }
+      .ubtn.danger { border-color: rgba(239,68,68,.4); color: #fca5a5; background: rgba(239,68,68,.08); }
+      .ubtn.danger:hover { border-color: var(--bear); color: var(--text-0); background: rgba(239,68,68,.18); }
+      .ubtn.primary { border-color: var(--purple); background: rgba(168,85,247,.18); color: var(--text-0); }
+    </style>
 
     <div id="toast" class="toast" style="display:none"></div>
 
@@ -276,16 +308,86 @@
         document.getElementById('adminShell').style.display = 'block';
         await loadStats();
         await loadScanners();
+        await loadUsers();
+      }
+
+      let userFilter = '';
+      function setFilter(f) {
+        userFilter = f;
+        ['All','Pending','Approved','Rejected'].forEach(name => {
+          const el = document.getElementById('filter' + name);
+          if (el) el.classList.toggle('active', (name === 'All' && f === '') || name.toLowerCase() === f);
+        });
+        loadUsers();
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        const map = { filterAll: '', filterPending: 'pending', filterApproved: 'approved', filterRejected: 'rejected' };
+        Object.entries(map).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('click', e => { e.preventDefault(); setFilter(val); });
+        });
+      });
+
+      async function loadUsers() {
+        try {
+          const q = userFilter ? ('?status=' + userFilter) : '';
+          const data = await api('/api/admin/users' + q);
+          const tbody = document.getElementById('userRows');
+          // Always update pending badge (independent of current filter)
+          const allData = userFilter ? await api('/api/admin/users') : data;
+          const pendingCount = allData.users.filter(u => u.status === 'pending').length;
+          const badge = document.getElementById('pendingBadge');
+          if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount + ' pending'; }
+          else { badge.style.display = 'none'; }
+
+          if (!data.users.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px;">No users.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.users.map(u => {
+            const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) : '—';
+            const pic = u.picture ? `<img class="uavatar" src="${escapeAttr(u.picture)}" alt="" />` : '<span class="uavatar" style="display:inline-block;background:var(--purple-deep);text-align:center;line-height:28px;color:#fff;font-size:11px;font-family:Fraunces,serif;">' + ((u.name || u.email || '?').charAt(0).toUpperCase()) + '</span>';
+            const actions = u.status === 'pending'
+              ? `<button class="ubtn primary" onclick="approveUser('${escapeAttr(u.id)}')">Approve</button><button class="ubtn danger" onclick="rejectUser('${escapeAttr(u.id)}')">Reject</button>`
+              : u.status === 'approved'
+                ? `<button class="ubtn danger" onclick="rejectUser('${escapeAttr(u.id)}')">Revoke</button>`
+                : `<button class="ubtn primary" onclick="approveUser('${escapeAttr(u.id)}')">Approve</button>`;
+            return `<tr>
+              <td>${pic}<span style="vertical-align:middle;font-family:Fraunces,serif;color:var(--text-0);">${escapeHtml(u.name || '—')}</span></td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2);">${escapeHtml(u.email || '')}</td>
+              <td><span class="pill ${u.status}">${u.status}</span></td>
+              <td style="font-size:11px;color:var(--text-3);">${joined}</td>
+              <td>${actions}<button class="ubtn danger" onclick="deleteUser('${escapeAttr(u.id)}')">Delete</button></td>
+            </tr>`;
+          }).join('');
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function approveUser(id) {
+        try { await api('/api/admin/users/' + encodeURIComponent(id) + '/approve', { method: 'POST' }); toast('Approved'); await loadUsers(); }
+        catch (err) { toast(err.message, false); }
+      }
+      async function rejectUser(id) {
+        if (!confirm('Reject this user? They will lose access immediately.')) return;
+        try { await api('/api/admin/users/' + encodeURIComponent(id) + '/reject', { method: 'POST' }); toast('Rejected'); await loadUsers(); }
+        catch (err) { toast(err.message, false); }
+      }
+      async function deleteUser(id) {
+        if (!confirm('Delete this user permanently? They will need to sign in again.')) return;
+        try { await api('/api/admin/users/' + encodeURIComponent(id), { method: 'DELETE' }); toast('Deleted'); await loadUsers(); }
+        catch (err) { toast(err.message, false); }
       }
 
       async function loadStats() {
         try {
           const data = await api('/api/admin/stats');
+          const usersData = await api('/api/admin/users').catch(() => ({ users: [] }));
+          const totalUsers = usersData.users.length;
+          const approvedUsers = usersData.users.filter(u => u.status === 'approved').length;
           const s = document.getElementById('stats');
-          const subs = data.subscriptions_by_plan.map(p => p.plan + ' ' + p.c).join(' · ') || '—';
           s.innerHTML = `
-            <div class="stat"><div class="label">Users</div><div class="value">${data.user_count}</div></div>
-            <div class="stat"><div class="label">Active subs</div><div class="value" style="font-size:16px">${escapeHtml(subs)}</div></div>
+            <div class="stat"><div class="label">Scanners</div><div class="value">${data.scanner_count} <span style="font-size:11px;color:var(--text-3);">(${data.live_scanner_count} live)</span></div></div>
+            <div class="stat"><div class="label">Users</div><div class="value">${totalUsers} <span style="font-size:11px;color:var(--text-3);">(${approvedUsers} approved)</span></div></div>
             <div class="stat"><div class="label">Alerts 24h</div><div class="value">${data.alerts_last_24h}</div></div>
             <div class="stat"><div class="label">Top scanner</div><div class="value" style="font-size:14px">${escapeHtml((data.top_scanners[0] && data.top_scanners[0].name) || '—')}</div></div>
           `;

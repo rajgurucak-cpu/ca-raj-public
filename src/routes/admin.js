@@ -89,6 +89,39 @@ router.post('/scanners/:id/rotate-secret', (req, res) => {
   res.json({ scanner: withWebhookUrl(req, row) });
 });
 
+// ---- Users (approval workflow) ----
+router.get('/users', (req, res) => {
+  const status = req.query.status;
+  const where = status ? 'WHERE status = ?' : '';
+  const params = status ? [status] : [];
+  const rows = db
+    .prepare(
+      `SELECT id, email, name, picture, status, created_at, approved_at, last_login_at
+       FROM users ${where} ORDER BY created_at DESC`,
+    )
+    .all(...params);
+  res.json({ users: rows });
+});
+
+router.post('/users/:id/approve', (req, res) => {
+  const info = db
+    .prepare("UPDATE users SET status = 'approved', approved_at = ? WHERE id = ?")
+    .run(Date.now(), req.params.id);
+  if (!info.changes) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+router.post('/users/:id/reject', (req, res) => {
+  const info = db.prepare("UPDATE users SET status = 'rejected' WHERE id = ?").run(req.params.id);
+  if (!info.changes) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+router.delete('/users/:id', (req, res) => {
+  const info = db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, deleted: info.changes });
+});
+
 router.get('/stats', (req, res) => {
   const since24 = Date.now() - 24 * 60 * 60 * 1000;
   const scannerCount = db.prepare('SELECT COUNT(*) as c FROM scanners').get().c;

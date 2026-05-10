@@ -1,9 +1,11 @@
 import express from 'express';
 import { db } from '../../db.js';
+import { requireApprovedUser } from '../lib/auth.js';
 
 const router = express.Router();
 
-// Fully public — no auth, all scanners visible, all alerts visible.
+// Approved-user gated — sign-in + admin approval required.
+router.use(requireApprovedUser);
 
 router.get('/', (req, res) => {
   const since = Date.now() - 24 * 60 * 60 * 1000;
