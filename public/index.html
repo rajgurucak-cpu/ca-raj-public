@@ -1,0 +1,1502 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CA RAJ — Scanner Terminal</title>
+    <meta name="description" content="Free public access to all 31 Chartink-powered intraday scanners, live." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #0a0610;
+        --bg-1: #110a1c;
+        --bg-2: #1a0f2b;
+        --bg-card: #15091f;
+        --line: #2a1a3d;
+        --line-soft: #1f1230;
+        --purple: #a855f7;
+        --purple-deep: #7c3aed;
+        --purple-glow: #c084fc;
+        --purple-dim: #4a1d6e;
+        --gold: #fbbf24;
+        --bull: #10d97e;
+        --bear: #ff4d6d;
+        --text-0: #f3eaff;
+        --text-1: #c8b8de;
+        --text-2: #8e7eaa;
+        --text-3: #5e4f7a;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Geist", system-ui, sans-serif;
+        background: var(--bg-0);
+        color: var(--text-0);
+        overflow-x: hidden;
+        min-height: 100vh;
+        background-image:
+          radial-gradient(
+            ellipse 800px 500px at 15% 0%,
+            rgba(168, 85, 247, 0.12),
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 600px 400px at 85% 10%,
+            rgba(124, 58, 237, 0.08),
+            transparent 60%
+          );
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.035;
+        z-index: 1;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      /* ---------------- TOPBAR ---------------- */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(20px);
+        background: rgba(10, 6, 16, 0.78);
+        border-bottom: 1px solid var(--line);
+        padding: 14px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+      }
+      .brand-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+        display: grid;
+        place-items: center;
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: white;
+        box-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+      }
+      .brand-text h1 {
+        font-family: "Fraunces", serif;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1;
+      }
+      .brand-text .tag {
+        font-size: 9px;
+        color: var(--purple-glow);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 500;
+        margin-top: 3px;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .market-status {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+      }
+      .status-pill {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(16, 217, 126, 0.06);
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--bull);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(16, 217, 126, 0.5);
+        }
+        70% {
+          box-shadow: 0 0 0 8px rgba(16, 217, 126, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 217, 126, 0);
+        }
+      }
+      .status-pill.closed {
+        background: rgba(255, 77, 109, 0.06);
+      }
+      .status-pill.closed .status-dot {
+        background: var(--bear);
+        animation: none;
+      }
+      .clock {
+        color: var(--text-1);
+      }
+      .tg-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: rgba(168, 85, 247, 0.08);
+        border: 1px solid var(--purple-dim);
+        color: var(--purple-glow);
+        border-radius: 999px;
+        font-family: "Geist", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .tg-btn:hover {
+        background: rgba(168, 85, 247, 0.16);
+        border-color: var(--purple);
+        color: var(--text-0);
+      }
+      .tg-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* ---------------- HERO ---------------- */
+      .hero {
+        padding: 32px 28px 20px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+      .hero-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--purple-glow);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .hero-tag::before {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: var(--purple);
+      }
+      .hero-title {
+        font-family: "Fraunces", serif;
+        font-size: clamp(28px, 5vw, 48px);
+        font-weight: 400;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin-bottom: 10px;
+      }
+      .hero-title em {
+        font-style: italic;
+        color: var(--purple-glow);
+        font-weight: 300;
+      }
+      .hero-sub {
+        color: var(--text-2);
+        font-size: 14px;
+        max-width: 640px;
+        line-height: 1.55;
+      }
+      .stat-strip {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1px;
+        background: var(--line-soft);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .stat-cell {
+        background: var(--bg-1);
+        padding: 16px 18px;
+      }
+      .stat-cell .label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-3);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .stat-cell .value {
+        font-family: "Fraunces", serif;
+        font-size: 28px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: -0.01em;
+      }
+      .stat-cell .delta {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        margin-top: 6px;
+      }
+      .delta.up {
+        color: var(--bull);
+      }
+      .delta.dn {
+        color: var(--bear);
+      }
+      .delta.neu {
+        color: var(--text-2);
+      }
+
+      /* ---------------- FILTERS / SEARCH ---------------- */
+      .filter-bar {
+        padding: 20px 28px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--line-soft);
+        position: sticky;
+        top: 71px;
+        z-index: 50;
+        background: rgba(10, 6, 16, 0.85);
+        backdrop-filter: blur(20px);
+      }
+      .filter-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        padding: 7px 13px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--text-1);
+        border-radius: 999px;
+        font-family: "Geist", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .pill:hover {
+        border-color: var(--purple-dim);
+        color: var(--text-0);
+      }
+      .pill.active {
+        background: var(--purple);
+        border-color: var(--purple);
+        color: white;
+        box-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+      }
+      .search-wrap {
+        position: relative;
+        margin-left: auto;
+        flex: 0 1 260px;
+      }
+      .search {
+        width: 100%;
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        color: var(--text-0);
+        padding: 9px 14px 9px 36px;
+        border-radius: 8px;
+        font-family: "Geist", sans-serif;
+        font-size: 13px;
+        outline: none;
+      }
+      .search:focus {
+        border-color: var(--purple);
+      }
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-3);
+      }
+
+      /* ---------------- GRID / SCANNER CARD ---------------- */
+      .grid-wrap {
+        padding: 24px 28px 60px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+      }
+      .scanner-card {
+        background: var(--bg-card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .scanner-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--purple),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .scanner-card:hover {
+        border-color: var(--purple-dim);
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px -12px rgba(168, 85, 247, 0.2);
+      }
+      .scanner-card:hover::before {
+        opacity: 1;
+      }
+      .scanner-card.live {
+        border-color: rgba(168, 85, 247, 0.4);
+        background:
+          linear-gradient(180deg, rgba(168, 85, 247, 0.04), transparent 60%),
+          var(--bg-card);
+      }
+      .scanner-card.flash {
+        box-shadow: 0 0 0 2px var(--purple),
+          0 16px 40px -12px rgba(168, 85, 247, 0.6);
+        transition: box-shadow 0.3s ease;
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+        gap: 12px;
+      }
+      .card-name {
+        font-family: "Fraunces", serif;
+        font-size: 17px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+        flex: 1;
+      }
+      .badge-row {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .badge {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 3px 7px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-weight: 600;
+      }
+      .badge-live {
+        color: var(--bull);
+        background: rgba(16, 217, 126, 0.1);
+        border: 1px solid rgba(16, 217, 126, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .badge-live .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--bull);
+        animation: pulse 2s infinite;
+      }
+      .card-cat {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-3);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      .card-cat .bias {
+        color: var(--purple-glow);
+        margin-left: 6px;
+      }
+      .card-cat .bias.bull {
+        color: var(--bull);
+      }
+      .card-cat .bias.bear {
+        color: var(--bear);
+      }
+      .card-desc {
+        color: var(--text-2);
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 14px;
+        min-height: 36px;
+      }
+      .match-count {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .match-count .num {
+        font-family: "Fraunces", serif;
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 1;
+      }
+      .match-count .lbl {
+        font-size: 12px;
+        color: var(--text-2);
+      }
+      .ticker-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        border-top: 1px solid var(--line-soft);
+        padding-top: 12px;
+      }
+      .ticker-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+      .ticker-row .sym {
+        color: var(--text-0);
+        font-weight: 500;
+      }
+      .ticker-row .pct.up {
+        color: var(--bull);
+      }
+      .ticker-row .pct.dn {
+        color: var(--bear);
+      }
+      .card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line-soft);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-3);
+      }
+      .view-all {
+        color: var(--purple-glow);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+      }
+
+      /* ---------------- MODAL ---------------- */
+      .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(5, 2, 10, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 200;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 40px 20px;
+        overflow-y: auto;
+      }
+      .modal-bg.open {
+        display: flex;
+      }
+      .modal {
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 920px;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .modal-head {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(168, 85, 247, 0.06),
+          transparent
+        );
+      }
+      .modal-title {
+        font-family: "Fraunces", serif;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        margin-bottom: 6px;
+      }
+      .modal-meta {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-2);
+      }
+      .close-btn {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--text-1);
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .close-btn:hover {
+        border-color: var(--bear);
+        color: var(--bear);
+      }
+      .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .results-table thead {
+        background: var(--bg-0);
+      }
+      .results-table th {
+        text-align: left;
+        padding: 12px 28px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-3);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        font-weight: 500;
+        border-bottom: 1px solid var(--line);
+      }
+      .results-table th.r,
+      .results-table td.r {
+        text-align: right;
+      }
+      .results-table tbody tr {
+        border-bottom: 1px solid var(--line-soft);
+        transition: background 0.15s;
+      }
+      .results-table tbody tr:hover {
+        background: rgba(168, 85, 247, 0.04);
+      }
+      .results-table td {
+        padding: 14px 28px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text-1);
+      }
+      .results-table td.sym {
+        color: var(--text-0);
+        font-weight: 500;
+      }
+      .tv-link {
+        color: var(--purple-glow);
+        text-decoration: none;
+        font-size: 11px;
+        border: 1px solid var(--purple-dim);
+        padding: 4px 9px;
+        border-radius: 5px;
+        transition: all 0.15s;
+      }
+      .tv-link:hover {
+        background: var(--purple);
+        border-color: var(--purple);
+        color: white;
+      }
+
+      /* ---------------- TELEGRAM MODAL INPUTS ---------------- */
+      .input-group {
+        margin-bottom: 16px;
+      }
+      .input-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-3);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .field {
+        display: flex;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--bg-0);
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+      .field:focus-within {
+        border-color: var(--purple);
+      }
+      .field input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-0);
+        padding: 14px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+      }
+      .btn-primary {
+        padding: 14px;
+        border: none;
+        background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+        color: white;
+        font-family: "Geist", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 28px rgba(168, 85, 247, 0.4);
+      }
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--text-1);
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.15s;
+      }
+      .btn-ghost:hover {
+        border-color: var(--purple-dim);
+        color: var(--text-0);
+      }
+
+      /* ---------------- FOOTER ---------------- */
+      footer {
+        padding: 32px 28px 40px;
+        border-top: 1px solid var(--line-soft);
+        text-align: center;
+        color: var(--text-3);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      footer .quote {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-size: 16px;
+        color: var(--text-1);
+        margin-bottom: 10px;
+      }
+      footer .quote span {
+        color: var(--purple-glow);
+      }
+
+      /* ---------------- TOAST ---------------- */
+      .toast {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%) translateY(60px);
+        background: var(--bg-1);
+        border: 1px solid var(--purple-dim);
+        color: var(--text-0);
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-family: "Geist", sans-serif;
+        z-index: 400;
+        opacity: 0;
+        transition: all 0.25s ease;
+        pointer-events: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        max-width: calc(100vw - 40px);
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast.error {
+        border-color: rgba(255, 77, 109, 0.5);
+        color: var(--bear);
+      }
+      .toast.ok {
+        border-color: rgba(16, 217, 126, 0.5);
+        color: var(--bull);
+      }
+
+      @media (max-width: 720px) {
+        .topbar {
+          padding: 12px 16px;
+          gap: 12px;
+        }
+        .top-actions {
+          gap: 10px;
+        }
+        .market-status {
+          gap: 8px;
+        }
+        .clock {
+          display: none;
+        }
+        .hero {
+          padding: 24px 16px 14px;
+        }
+        .filter-bar {
+          padding: 14px 16px;
+          top: 65px;
+        }
+        .grid-wrap {
+          padding: 18px 16px 50px;
+        }
+        .results-table th,
+        .results-table td {
+          padding: 10px 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <div class="brand-logo">R</div>
+        <div class="brand-text">
+          <h1>CA RAJ</h1>
+          <div class="tag">Raj Never Quits</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="market-status">
+          <div class="status-pill" id="marketPill">
+            <div class="status-dot"></div>
+            <span id="marketState">NSE LIVE</span>
+          </div>
+          <div class="clock" id="clock">--:--:-- IST</div>
+        </div>
+        <button class="tg-btn" onclick="openTelegramModal()" id="tgOpenBtn" aria-label="Telegram alerts">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19l-9.49 5.99-4.1-1.28c-.88-.25-.89-.86.2-1.3l16-6.16c.74-.34 1.45.18 1.16 1.32l-2.73 12.86c-.19.92-.74 1.14-1.5.71l-4.13-3.05-1.99 1.93c-.23.23-.42.42-.86.42z"/>
+          </svg>
+          Telegram alerts
+        </button>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-tag">Live Scanner Terminal · NSE / BSE</div>
+      <h1 class="hero-title">
+        31 scanners.<br /><em>One pulse on the market.</em>
+      </h1>
+      <p class="hero-sub">
+        Free public access — all 31 Chartink-powered intraday scanners, live.
+        Real-time webhook results from "Khela Hobe" intraday calls, Stage 2 breakouts
+        and F&amp;O buildup signals — surfaced the moment they trigger. No login, no paywall.
+      </p>
+      <div class="stat-strip">
+        <div class="stat-cell">
+          <div class="label">Active Scanners</div>
+          <div class="value" id="statTotal">31</div>
+          <div class="delta neu">All operational</div>
+        </div>
+        <div class="stat-cell">
+          <div class="label">Live Right Now</div>
+          <div class="value" id="statLive">—</div>
+          <div class="delta up">Streaming via webhook</div>
+        </div>
+        <div class="stat-cell">
+          <div class="label">Alerts (24h)</div>
+          <div class="value" id="statAlerts">0</div>
+          <div class="delta neu" id="statAlertsDelta">Hydrating…</div>
+        </div>
+        <div class="stat-cell">
+          <div class="label">Market Bias</div>
+          <div class="value" id="statBias" style="color: var(--bull); font-size: 22px">
+            NEUTRAL
+          </div>
+          <div class="delta neu" id="statBiasDelta">Awaiting first triggers</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTERS + SEARCH -->
+    <div class="filter-bar">
+      <div class="filter-pills" id="filterPills">
+        <button class="pill active" data-cat="all">All</button>
+        <button class="pill" data-cat="intraday">Intraday</button>
+        <button class="pill" data-cat="breakout">Breakout</button>
+        <button class="pill" data-cat="momentum">Momentum</button>
+        <button class="pill" data-cat="setup">Price Action</button>
+        <button class="pill" data-cat="reversal">Reversal</button>
+        <button class="pill" data-cat="fno">F&amp;O</button>
+        <button class="pill" data-cat="volume">Volume</button>
+      </div>
+      <div class="search-wrap">
+        <svg
+          class="search-icon"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          class="search"
+          id="searchInput"
+          type="text"
+          placeholder="Search scanners…"
+          aria-label="Search scanners"
+        />
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <main class="grid-wrap">
+      <div class="grid" id="scannerGrid"></div>
+    </main>
+
+    <footer>
+      <div class="quote">
+        "Markets <span>reward</span> the prepared. The rest is noise."
+      </div>
+      <div>
+        © CA RAJ · Disclaimer: Educational use only · Not investment advice
+      </div>
+    </footer>
+
+    <!-- SCANNER DETAIL MODAL -->
+    <div
+      class="modal-bg"
+      id="modal"
+      onclick="if (event.target === this) closeModal();"
+    >
+      <div class="modal" id="modalBody"></div>
+    </div>
+
+    <!-- TELEGRAM MODAL -->
+    <div
+      class="modal-bg"
+      id="telegramModal"
+      onclick="if (event.target === this) closeTelegramModal();"
+    >
+      <div class="modal" style="max-width: 540px">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Telegram alerts</div>
+            <div class="modal-meta">
+              <span>Instant alerts to your Telegram chat — anonymous, no account.</span>
+            </div>
+          </div>
+          <button class="close-btn" onclick="closeTelegramModal()" aria-label="Close">×</button>
+        </div>
+        <div style="padding: 22px 28px">
+          <div class="input-group">
+            <label class="input-label" for="tgBotToken">Bot Token</label>
+            <div class="field">
+              <input id="tgBotToken" type="text" placeholder="123456:ABC-DEF…" />
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="tgChatId">Chat ID</label>
+            <div class="field">
+              <input id="tgChatId" type="text" placeholder="123456789 or @channelname" />
+            </div>
+          </div>
+          <div
+            style="
+              font-size: 11px;
+              color: var(--text-3);
+              line-height: 1.6;
+              margin-bottom: 16px;
+            "
+          >
+            Create a bot via
+            <strong style="color: var(--text-1)">@BotFather</strong> to get a
+            token. Get your chat ID from
+            <strong style="color: var(--text-1)">@userinfobot</strong>. Your config
+            is stored anonymously, keyed by a random device ID kept in this browser.
+          </div>
+          <div id="tgStatus" style="font-size: 12px; margin-bottom: 12px; min-height: 16px;"></div>
+          <div style="display: flex; gap: 10px">
+            <button class="btn-primary" style="flex: 1" onclick="saveTelegram()" id="tgSaveBtn">Save</button>
+            <button class="btn-ghost" style="flex: 1" onclick="testTelegram()" id="tgTestBtn">Send test</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+// =============================================================
+// CA RAJ Scanner Terminal — public, no-login frontend
+// =============================================================
+
+const DEVICE_KEY = 'scanner_device_id';
+
+function getDeviceId() {
+  let id = null;
+  try { id = localStorage.getItem(DEVICE_KEY); } catch (e) {}
+  if (!id) {
+    id = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'dev-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+    try { localStorage.setItem(DEVICE_KEY, id); } catch (e) {}
+  }
+  return id;
+}
+
+const state = {
+  deviceId: getDeviceId(),
+  scanners: [],
+  filter: 'all',
+  search: '',
+  sse: null,
+  pollTimer: null,
+  alertsCache: {}, // scannerId -> { lastSeen, list }
+};
+
+// ---- API HELPERS ----
+async function api(path, opts = {}) {
+  const headers = {
+    'content-type': 'application/json',
+    'x-device-id': state.deviceId,
+    ...(opts.headers || {}),
+  };
+  const res = await fetch(path, { ...opts, headers });
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) {
+    const err = new Error((data && data.error) || res.statusText || ('HTTP ' + res.status));
+    err.status = res.status;
+    err.body = data;
+    throw err;
+  }
+  return data;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+function toast(msg, kind) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show' + (kind ? ' ' + kind : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.className = 'toast'; }, 3200);
+}
+
+// ---- SCANNERS ----
+async function loadScanners() {
+  try {
+    const data = await api('/api/scanners');
+    state.scanners = (data.scanners || []).map(s => ({ ...s }));
+    refreshHeroStats();
+    renderGrid();
+  } catch (err) {
+    console.error('loadScanners', err);
+    document.getElementById('scannerGrid').innerHTML =
+      '<div style="grid-column:1/-1; text-align:center; padding:48px; color:var(--bear); font-size:14px;">Could not load scanners: ' +
+      escapeHtml(err.message) + '</div>';
+  }
+}
+
+function refreshHeroStats() {
+  const total = state.scanners.length;
+  const live = state.scanners.filter(s => s.live).length;
+  const alerts24 = state.scanners.reduce((sum, s) => sum + (Number(s.matchCount) || 0), 0);
+  const elTotal = document.getElementById('statTotal');
+  const elLive = document.getElementById('statLive');
+  const elAlerts = document.getElementById('statAlerts');
+  const elAlertsDelta = document.getElementById('statAlertsDelta');
+  if (elTotal) elTotal.textContent = total || 31;
+  if (elLive) elLive.textContent = live;
+  if (elAlerts) elAlerts.textContent = alerts24;
+  if (elAlertsDelta) {
+    elAlertsDelta.textContent = alerts24 > 0
+      ? alerts24 + ' triggers in the last 24h'
+      : 'Awaiting first triggers';
+  }
+}
+
+// ---- GRID ----
+function renderGrid() {
+  const grid = document.getElementById('scannerGrid');
+  if (!grid) return;
+  const term = (state.search || '').trim().toLowerCase();
+  const filtered = state.scanners.filter(s => {
+    const catOk = state.filter === 'all' || s.cat === state.filter;
+    if (!catOk) return false;
+    if (!term) return true;
+    return (
+      (s.name || '').toLowerCase().includes(term) ||
+      (s.descr || '').toLowerCase().includes(term) ||
+      (s.cat || '').toLowerCase().includes(term)
+    );
+  });
+  grid.innerHTML = '';
+  if (!filtered.length) {
+    grid.innerHTML =
+      '<div style="grid-column:1/-1; text-align:center; padding:60px; color:var(--text-3); font-family:Fraunces, serif; font-size:18px;">No scanners match your filter.</div>';
+    return;
+  }
+  filtered.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'scanner-card' + (s.live ? ' live' : '');
+    card.dataset.scannerId = s.id;
+    card.style.animationDelay = (i * 25) + 'ms';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', s.name || 'Scanner');
+    card.onclick = () => openScannerDetail(s.id);
+    card.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openScannerDetail(s.id); }
+    };
+    const biasClass = s.bias === 'bear' ? 'bear' : 'bull';
+    const matchCount = Number(s.matchCount) || 0;
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-name">${escapeHtml(s.name || '')}</div>
+        <div class="badge-row">
+          ${s.live ? '<span class="badge badge-live"><span class="dot"></span>LIVE</span>' : ''}
+        </div>
+      </div>
+      <div class="card-cat">${escapeHtml((s.cat || '').toUpperCase())}<span class="bias ${biasClass}">· ${escapeHtml((s.bias || '').toUpperCase())}</span></div>
+      <div class="card-desc">${escapeHtml(s.descr || '')}</div>
+      <div class="match-count">
+        <span class="num" data-match="${escapeAttr(s.id)}">${matchCount}</span>
+        <span class="lbl">alerts last 24h</span>
+      </div>
+      <div class="ticker-list" data-tickers="${escapeAttr(s.id)}"></div>
+      <div class="card-foot">
+        <span>${s.live ? 'Webhook · live' : 'Webhook · idle'}</span>
+        <span class="view-all">View all →</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  filtered.forEach(s => hydrateTopTickers(s.id));
+}
+
+function hydrateTopTickers(scannerId) {
+  const wrap = document.querySelector('[data-tickers="' + cssEscape(scannerId) + '"]');
+  if (!wrap) return;
+  const cache = state.alertsCache[scannerId];
+  const list = (cache && cache.list) ? cache.list.slice(0, 3) : [];
+  if (!list.length) {
+    wrap.innerHTML =
+      '<div style="font-family:\'JetBrains Mono\',monospace; font-size:11px; color:var(--text-3); padding:6px 0;">No recent triggers</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(a => `
+    <div class="ticker-row">
+      <span class="sym">${escapeHtml(a.symbol || '')}</span>
+      <span class="pct up">${a.trigger_price ? '₹' + Number(a.trigger_price).toFixed(2) : '—'}</span>
+    </div>
+  `).join('');
+}
+
+function cssEscape(s) {
+  if (window.CSS && CSS.escape) return CSS.escape(s);
+  return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+}
+
+function bumpScannerMatch(scannerId, alert) {
+  const s = state.scanners.find(x => x.id === scannerId);
+  if (!s) return;
+  s.matchCount = (Number(s.matchCount) || 0) + 1;
+  const numEl = document.querySelector('[data-match="' + cssEscape(scannerId) + '"]');
+  if (numEl) numEl.textContent = s.matchCount;
+  const card = document.querySelector('.scanner-card[data-scanner-id="' + cssEscape(scannerId) + '"]');
+  if (card) {
+    card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 1200);
+  }
+  if (!state.alertsCache[scannerId]) state.alertsCache[scannerId] = { lastSeen: 0, list: [] };
+  const cache = state.alertsCache[scannerId];
+  cache.list.unshift(alert);
+  cache.list = cache.list.slice(0, 50);
+  cache.lastSeen = Math.max(cache.lastSeen, Number(alert.created_at) || Date.now());
+  hydrateTopTickers(scannerId);
+  refreshHeroStats();
+}
+
+// ---- SCANNER DETAIL MODAL ----
+async function openScannerDetail(id) {
+  const s = state.scanners.find(x => x.id === id);
+  if (!s) return;
+  history.replaceState({}, '', '?scanner=' + encodeURIComponent(id));
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">${escapeHtml(s.name || '')}</div>
+        <div class="modal-meta">
+          <span>${escapeHtml((s.cat || '').toUpperCase())}</span>
+          <span>${escapeHtml((s.bias || '').toUpperCase())}</span>
+          <span>${s.live ? '🟢 LIVE' : '⚪ DORMANT'}</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeModal()" aria-label="Close">×</button>
+    </div>
+    <div style="padding: 18px 28px; color: var(--text-2); font-size: 13px; line-height: 1.6; border-bottom: 1px solid var(--line-soft);">
+      ${escapeHtml(s.descr || '')}
+    </div>
+    <div id="alertsBody" style="padding: 0">
+      <div style="padding: 24px 28px; color: var(--text-3); font-family:'JetBrains Mono',monospace; font-size:12px;">Loading alerts…</div>
+    </div>
+    <div style="padding: 18px 28px; border-top: 1px solid var(--line-soft); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-3);">Webhook: <span style="color: ${s.live ? 'var(--bull)' : 'var(--text-2)'};">${s.live ? '● Connected' : '○ Idle'}</span></span>
+      ${s.url ? `<a class="tv-link" href="${escapeAttr(s.url)}" target="_blank" rel="noopener" style="font-size:12px;">Open in Chartink ↗</a>` : ''}
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  try {
+    const data = await api('/api/scanners/' + encodeURIComponent(id) + '/alerts?limit=50');
+    renderAlertsTable(data.alerts || []);
+    if (data.alerts && data.alerts.length) {
+      if (!state.alertsCache[id]) state.alertsCache[id] = { lastSeen: 0, list: [] };
+      state.alertsCache[id].list = data.alerts.slice(0, 50);
+      state.alertsCache[id].lastSeen = Math.max(
+        state.alertsCache[id].lastSeen,
+        ...data.alerts.map(a => Number(a.created_at) || 0)
+      );
+      hydrateTopTickers(id);
+    }
+  } catch (err) {
+    document.getElementById('alertsBody').innerHTML =
+      '<div style="padding:24px 28px; color:var(--bear); font-size:13px;">' +
+      escapeHtml(err.message || 'Failed to load alerts') + '</div>';
+  }
+}
+
+function renderAlertsTable(alerts) {
+  const body = document.getElementById('alertsBody');
+  if (!body) return;
+  if (!alerts.length) {
+    body.innerHTML =
+      '<div style="padding:32px 28px; text-align:center; color:var(--text-3); font-family:\'JetBrains Mono\',monospace; font-size:12px;">No alerts yet. Trigger the Chartink webhook to populate this list.</div>';
+    return;
+  }
+  body.innerHTML = `
+    <table class="results-table">
+      <thead><tr><th>Symbol</th><th class="r">Trigger ₹</th><th class="r">Triggered</th><th class="r">Chart</th></tr></thead>
+      <tbody>
+        ${alerts.map(a => `
+          <tr>
+            <td class="sym">${escapeHtml(a.symbol || '')}</td>
+            <td class="r">${a.trigger_price ? '₹' + Number(a.trigger_price).toFixed(2) : '—'}</td>
+            <td class="r" style="color:var(--text-2)">${formatRelative(a.created_at || a.triggered_at)}</td>
+            <td class="r"><a class="tv-link" href="https://in.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(a.symbol || '')}" target="_blank" rel="noopener">TV ↗</a></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function formatRelative(ts) {
+  if (!ts) return '—';
+  const diff = Date.now() - Number(ts);
+  if (!isFinite(diff) || diff < 0) return '—';
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ' + (m % 60) + 'm ago';
+  return new Date(Number(ts)).toLocaleString('en-IN', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+  history.replaceState({}, '', location.pathname);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeTelegramModal();
+  }
+});
+
+// ---- SSE + POLLING ----
+function startSSE() {
+  closeSSE();
+  try {
+    const es = new EventSource('/api/stream');
+    state.sse = es;
+    es.addEventListener('hello', () => { /* connected */ });
+    es.addEventListener('alert', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data && data.scanner_id) bumpScannerMatch(data.scanner_id, data);
+      } catch (err) {}
+    });
+    es.addEventListener('ping', () => {});
+    es.onerror = () => {
+      console.warn('SSE error → falling back to polling');
+      closeSSE();
+      startPolling();
+    };
+  } catch (err) {
+    startPolling();
+  }
+}
+
+function closeSSE() {
+  if (state.sse) { try { state.sse.close(); } catch (e) {} state.sse = null; }
+}
+
+function startPolling() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  state.pollTimer = setInterval(async () => {
+    const live = state.scanners.filter(s => s.live);
+    for (const s of live) {
+      try {
+        const since = (state.alertsCache[s.id] && state.alertsCache[s.id].lastSeen) || 0;
+        const data = await api('/api/scanners/' + encodeURIComponent(s.id) + '/alerts?since=' + since + '&limit=20');
+        if (data.alerts && data.alerts.length) {
+          for (const a of [...data.alerts].reverse()) bumpScannerMatch(s.id, a);
+        }
+      } catch (err) { /* ignore */ }
+    }
+  }, 8000);
+}
+
+// ---- TELEGRAM MODAL ----
+async function openTelegramModal() {
+  document.getElementById('telegramModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const status = document.getElementById('tgStatus');
+  status.textContent = '';
+  status.style.color = '';
+  document.getElementById('tgBotToken').value = '';
+  document.getElementById('tgBotToken').placeholder = '123456:ABC-DEF…';
+  document.getElementById('tgChatId').value = '';
+  try {
+    const data = await api('/api/telegram/config?device_id=' + encodeURIComponent(state.deviceId));
+    if (data && data.config) {
+      if (data.config.has_token) {
+        document.getElementById('tgBotToken').placeholder =
+          data.config.bot_token_masked || 'token saved (leave blank to keep)';
+      }
+      if (data.config.chat_id) {
+        document.getElementById('tgChatId').value = data.config.chat_id;
+      }
+    }
+  } catch (err) { /* ignore — fresh device */ }
+}
+
+function closeTelegramModal() {
+  document.getElementById('telegramModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function saveTelegram() {
+  const bot_token = document.getElementById('tgBotToken').value.trim();
+  const chat_id = document.getElementById('tgChatId').value.trim();
+  const status = document.getElementById('tgStatus');
+  const btn = document.getElementById('tgSaveBtn');
+  status.style.color = 'var(--text-2)';
+  status.textContent = 'Saving…';
+  btn.disabled = true;
+  try {
+    if (!chat_id) throw new Error('Chat ID is required');
+    await api('/api/telegram/config', {
+      method: 'POST',
+      body: JSON.stringify({
+        device_id: state.deviceId,
+        bot_token: bot_token || undefined,
+        chat_id,
+        enabled: true,
+        scanner_filters: [],
+      }),
+    });
+    status.style.color = 'var(--bull)';
+    status.textContent = 'Saved.';
+    toast('Telegram config saved', 'ok');
+  } catch (err) {
+    status.style.color = 'var(--bear)';
+    status.textContent = err.message || 'Save failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function testTelegram() {
+  const status = document.getElementById('tgStatus');
+  const btn = document.getElementById('tgTestBtn');
+  status.style.color = 'var(--text-2)';
+  status.textContent = 'Sending test…';
+  btn.disabled = true;
+  try {
+    const bot_token = document.getElementById('tgBotToken').value.trim();
+    const chat_id = document.getElementById('tgChatId').value.trim();
+    if (bot_token || chat_id) {
+      await api('/api/telegram/config', {
+        method: 'POST',
+        body: JSON.stringify({
+          device_id: state.deviceId,
+          bot_token: bot_token || undefined,
+          chat_id: chat_id || undefined,
+          enabled: true,
+          scanner_filters: [],
+        }),
+      });
+    }
+    await api('/api/telegram/test', {
+      method: 'POST',
+      body: JSON.stringify({ device_id: state.deviceId }),
+    });
+    status.style.color = 'var(--bull)';
+    status.textContent = '✅ Test sent. Check your Telegram.';
+    toast('Test message sent', 'ok');
+  } catch (err) {
+    status.style.color = 'var(--bear)';
+    status.textContent = err.message || 'Test failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ---- FILTERS / SEARCH / CLOCK ----
+function bindFilters() {
+  document.getElementById('filterPills').addEventListener('click', e => {
+    const btn = e.target.closest('.pill');
+    if (!btn) return;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    state.filter = btn.dataset.cat || 'all';
+    renderGrid();
+  });
+  document.getElementById('searchInput').addEventListener('input', e => {
+    state.search = e.target.value || '';
+    renderGrid();
+  });
+}
+
+function updateClock() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const hh = String(ist.getHours()).padStart(2, '0');
+  const mm = String(ist.getMinutes()).padStart(2, '0');
+  const ss = String(ist.getSeconds()).padStart(2, '0');
+  const clockEl = document.getElementById('clock');
+  if (clockEl) clockEl.textContent = `${hh}:${mm}:${ss} IST`;
+  const day = ist.getDay();
+  const minutes = ist.getHours() * 60 + ist.getMinutes();
+  // NSE: Mon–Fri, 09:15–15:30 IST
+  const isOpen = day >= 1 && day <= 5 && minutes >= 555 && minutes <= 930;
+  const pill = document.getElementById('marketPill');
+  const stateEl = document.getElementById('marketState');
+  if (pill && stateEl) {
+    if (isOpen) {
+      pill.classList.remove('closed');
+      stateEl.textContent = 'NSE LIVE';
+    } else {
+      pill.classList.add('closed');
+      stateEl.textContent = 'NSE CLOSED';
+    }
+  }
+}
+
+// ---- DEEP LINK ----
+function bootDeepLink() {
+  const params = new URLSearchParams(location.search);
+  const sid = params.get('scanner');
+  if (sid) setTimeout(() => openScannerDetail(sid), 400);
+}
+
+// ---- BOOT ----
+(async function boot() {
+  bindFilters();
+  setInterval(updateClock, 1000);
+  updateClock();
+  await loadScanners();
+  startSSE();
+  // Polling timer always runs as a safety net (cheap when SSE works because
+  // alertsCache lastSeen advances and most calls return empty arrays).
+  startPolling();
+  bootDeepLink();
+})();
+    </script>
+  </body>
+</html>

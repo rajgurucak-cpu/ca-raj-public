@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CA RAJ — Scanner</title>
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        var id = params.get('id') || params.get('scanner');
+        var url = '/' + (id ? '?scanner=' + encodeURIComponent(id) : '');
+        location.replace(url);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

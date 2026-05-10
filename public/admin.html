@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CA RAJ — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #0a0610;
+        --bg-1: #110a1c;
+        --bg-2: #1a0f2b;
+        --bg-card: #15091f;
+        --line: #2a1a3d;
+        --line-soft: #1f1230;
+        --purple: #a855f7;
+        --purple-deep: #7c3aed;
+        --purple-glow: #c084fc;
+        --purple-dim: #4a1d6e;
+        --gold: #fbbf24;
+        --bull: #10d97e;
+        --bear: #ff4d6d;
+        --text-0: #f3eaff;
+        --text-1: #c8b8de;
+        --text-2: #8e7eaa;
+        --text-3: #5e4f7a;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'Geist', system-ui, sans-serif;
+        background: var(--bg-0);
+        color: var(--text-0);
+        min-height: 100vh;
+        background-image:
+          radial-gradient(ellipse 800px 500px at 15% 0%, rgba(168, 85, 247, 0.12), transparent 60%),
+          radial-gradient(ellipse 600px 400px at 85% 10%, rgba(124, 58, 237, 0.08), transparent 60%);
+      }
+      .topbar {
+        position: sticky; top: 0; z-index: 100;
+        backdrop-filter: blur(20px); background: rgba(10, 6, 16, 0.78);
+        border-bottom: 1px solid var(--line);
+        padding: 14px 28px;
+        display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .brand-logo {
+        width: 40px; height: 40px; border-radius: 9px;
+        background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+        display: grid; place-items: center;
+        font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; color: white;
+        box-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+      }
+      .brand h1 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; }
+      .brand .tag { font-size: 9px; color: var(--purple-glow); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 3px; }
+      .shell { padding: 32px 28px 80px; max-width: 1280px; margin: 0 auto; }
+      h2 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 400; margin-bottom: 6px; letter-spacing: -0.02em; }
+      .sub { color: var(--text-2); margin-bottom: 28px; font-size: 14px; }
+      .card {
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      .card h3 {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-3);
+        margin-bottom: 14px;
+      }
+      input, select, textarea {
+        background: var(--bg-0);
+        border: 1px solid var(--line);
+        color: var(--text-0);
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        outline: none;
+        width: 100%;
+      }
+      input:focus, select:focus, textarea:focus { border-color: var(--purple); }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      .row > * { flex: 1 1 160px; min-width: 0; }
+      .btn {
+        background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+        color: white; border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'Geist', sans-serif;
+        font-size: 13px; font-weight: 500;
+      }
+      .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--text-1); }
+      .btn.danger { background: linear-gradient(135deg, var(--bear), #c83052); }
+      .btn:hover { filter: brightness(1.1); }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+      th { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+      td { font-size: 13px; color: var(--text-1); }
+      td.sym { font-family: 'JetBrains Mono', monospace; color: var(--text-0); }
+      .pill {
+        display: inline-block;
+        padding: 3px 8px; border-radius: 999px; font-size: 10px;
+        background: var(--bg-2); color: var(--text-2); letter-spacing: 0.08em;
+        font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+      }
+      .pill.pro { background: linear-gradient(135deg, var(--gold), #f59e0b); color: #1a0f00; }
+      .pill.live { background: rgba(16,217,126,0.12); color: var(--bull); }
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line-soft); border-radius: 12px; overflow: hidden; }
+      .stat { background: var(--bg-1); padding: 16px 18px; }
+      .stat .label { font-family:'JetBrains Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px; }
+      .stat .value { font-family:'Fraunces', serif; font-size: 28px; font-weight: 400; line-height: 1; }
+      .webhook-url {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--purple-glow);
+        background: var(--bg-0);
+        padding: 6px 8px;
+        border-radius: 6px;
+        word-break: break-all;
+        max-width: 360px;
+        display: inline-block;
+      }
+      .toast {
+        position: fixed; bottom: 20px; right: 20px;
+        background: var(--bg-1); border: 1px solid var(--purple-dim);
+        padding: 12px 16px; border-radius: 10px;
+        font-size: 13px; color: var(--purple-glow);
+        z-index: 999;
+      }
+      .auth-shell {
+        min-height: 100vh; display: grid; place-items: center; padding: 24px;
+      }
+      .auth-card {
+        background: var(--bg-1); border: 1px solid var(--line); border-radius: 14px;
+        padding: 32px; max-width: 420px; width: 100%;
+      }
+      .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="authShell" class="auth-shell">
+      <div class="auth-card">
+        <div class="brand" style="margin-bottom: 24px">
+          <div class="brand-logo">R</div>
+          <div>
+            <h1>Admin</h1>
+            <div class="tag">CA RAJ Scanner Terminal</div>
+          </div>
+        </div>
+        <label class="label">Admin Token</label>
+        <input id="adminTokenInput" type="password" placeholder="ADMIN_TOKEN from .env" />
+        <button class="btn" style="margin-top: 14px; width: 100%" onclick="loginAdmin()">Enter Admin</button>
+        <div id="authErr" style="margin-top: 12px; color: var(--bear); font-size: 12px"></div>
+      </div>
+    </div>
+
+    <div id="adminShell" style="display: none">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-logo">R</div>
+          <div>
+            <h1>CA RAJ Admin</h1>
+            <div class="tag">Scanner Terminal</div>
+          </div>
+        </div>
+        <div style="display:flex; gap: 10px; align-items: center;">
+          <a href="/" style="color: var(--text-2); font-size: 13px; text-decoration: none;">← App</a>
+          <button class="btn ghost" onclick="logoutAdmin()">Sign out</button>
+        </div>
+      </header>
+
+      <div class="shell">
+        <h2>Operations</h2>
+        <div class="sub">Manage scanners, rotate webhook secrets, view live stats.</div>
+
+        <div class="card">
+          <h3>Stats (last 24h)</h3>
+          <div class="stats" id="stats"></div>
+        </div>
+
+        <div class="card">
+          <h3>Add Scanner</h3>
+          <div class="row" style="margin-bottom: 12px">
+            <input id="addName" placeholder="Name" />
+            <input id="addUrl" placeholder="https://chartink.com/screener/..." />
+          </div>
+          <div class="row" style="margin-bottom: 12px">
+            <select id="addTier">
+              <option value="free">free</option>
+              <option value="pro" selected>pro</option>
+            </select>
+            <select id="addCat">
+              <option>setup</option><option>breakout</option><option>momentum</option>
+              <option>intraday</option><option>reversal</option><option>fno</option><option>volume</option>
+            </select>
+            <select id="addBias">
+              <option value="bull">bull</option><option value="bear">bear</option>
+            </select>
+            <select id="addLive">
+              <option value="1">live</option><option value="0">idle</option>
+            </select>
+          </div>
+          <input id="addDescr" placeholder="Description" />
+          <button class="btn" style="margin-top: 12px" onclick="addScanner()">Create</button>
+        </div>
+
+        <div class="card">
+          <h3>Scanners</h3>
+          <table>
+            <thead><tr><th>Name / Cat</th><th>Tier</th><th>Live</th><th>Webhook URL</th><th>Actions</th></tr></thead>
+            <tbody id="scannerRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" style="display:none"></div>
+
+    <script>
+      const TOKEN_KEY = 'admin_token';
+      let adminToken = localStorage.getItem(TOKEN_KEY) || null;
+
+      function toast(msg, ok = true) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.style.borderColor = ok ? 'var(--purple-dim)' : 'var(--bear)';
+        el.style.color = ok ? 'var(--purple-glow)' : 'var(--bear)';
+        el.style.display = 'block';
+        clearTimeout(el._t);
+        el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
+      }
+
+      async function api(path, opts = {}) {
+        const headers = { 'content-type': 'application/json', 'x-admin-token': adminToken, ...(opts.headers || {}) };
+        const res = await fetch(path, { ...opts, headers });
+        let data = null; try { data = await res.json(); } catch (e) {}
+        if (!res.ok) {
+          const err = new Error((data && data.error) || res.statusText);
+          err.status = res.status; throw err;
+        }
+        return data;
+      }
+
+      async function loginAdmin() {
+        const tok = document.getElementById('adminTokenInput').value.trim();
+        if (!tok) return;
+        adminToken = tok;
+        try {
+          await api('/api/admin/stats');
+          localStorage.setItem(TOKEN_KEY, tok);
+          showAdmin();
+        } catch (err) {
+          document.getElementById('authErr').textContent = err.message || 'Auth failed';
+          adminToken = null;
+        }
+      }
+
+      function logoutAdmin() {
+        adminToken = null;
+        localStorage.removeItem(TOKEN_KEY);
+        document.getElementById('adminShell').style.display = 'none';
+        document.getElementById('authShell').style.display = 'grid';
+      }
+
+      async function showAdmin() {
+        document.getElementById('authShell').style.display = 'none';
+        document.getElementById('adminShell').style.display = 'block';
+        await loadStats();
+        await loadScanners();
+      }
+
+      async function loadStats() {
+        try {
+          const data = await api('/api/admin/stats');
+          const s = document.getElementById('stats');
+          const subs = data.subscriptions_by_plan.map(p => p.plan + ' ' + p.c).join(' · ') || '—';
+          s.innerHTML = `
+            <div class="stat"><div class="label">Users</div><div class="value">${data.user_count}</div></div>
+            <div class="stat"><div class="label">Active subs</div><div class="value" style="font-size:16px">${escapeHtml(subs)}</div></div>
+            <div class="stat"><div class="label">Alerts 24h</div><div class="value">${data.alerts_last_24h}</div></div>
+            <div class="stat"><div class="label">Top scanner</div><div class="value" style="font-size:14px">${escapeHtml((data.top_scanners[0] && data.top_scanners[0].name) || '—')}</div></div>
+          `;
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function loadScanners() {
+        try {
+          const data = await api('/api/admin/scanners');
+          const tbody = document.getElementById('scannerRows');
+          tbody.innerHTML = data.scanners.map(s => `
+            <tr data-id="${escapeAttr(s.id)}">
+              <td>
+                <div style="font-family:'Fraunces',serif; color:var(--text-0); font-size:14px;">${escapeHtml(s.name)}</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-3); margin-top:4px;">${escapeHtml(s.cat || '')} · ${escapeHtml(s.bias || '')} · <a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" style="color:var(--purple-glow); text-decoration:none;">chartink ↗</a></div>
+                <div style="font-size:11px; color:var(--text-2); margin-top:6px;">${escapeHtml(s.descr || '')}</div>
+              </td>
+              <td><span class="pill ${s.tier === 'pro' ? 'pro' : ''}">${escapeHtml(s.tier || '')}</span></td>
+              <td>${s.live ? '<span class="pill live">live</span>' : '<span class="pill">idle</span>'}</td>
+              <td><span class="webhook-url">${escapeHtml(s.webhook_url)}</span><br/><button class="btn ghost" style="margin-top:6px; font-size:11px; padding:4px 10px;" onclick="rotateSecret('${escapeAttr(s.id)}')">Rotate secret</button> <button class="btn ghost" style="margin-top:6px; font-size:11px; padding:4px 10px;" onclick="copyWebhook('${escapeAttr(s.webhook_url)}')">Copy</button></td>
+              <td>
+                <button class="btn ghost" style="font-size:11px; padding:4px 10px;" onclick="toggleLive('${escapeAttr(s.id)}', ${s.live ? 0 : 1})">${s.live ? 'Set idle' : 'Set live'}</button>
+                <button class="btn danger" style="font-size:11px; padding:4px 10px; margin-top: 6px;" onclick="deleteScanner('${escapeAttr(s.id)}', '${escapeAttr(s.name)}')">Delete</button>
+              </td>
+            </tr>
+          `).join('');
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function addScanner() {
+        const body = {
+          name: document.getElementById('addName').value.trim(),
+          url: document.getElementById('addUrl').value.trim(),
+          tier: document.getElementById('addTier').value,
+          cat: document.getElementById('addCat').value,
+          bias: document.getElementById('addBias').value,
+          live: document.getElementById('addLive').value === '1',
+          descr: document.getElementById('addDescr').value.trim(),
+        };
+        if (!body.name) return toast('Name required', false);
+        try {
+          await api('/api/admin/scanners', { method: 'POST', body: JSON.stringify(body) });
+          ['addName', 'addUrl', 'addDescr'].forEach(id => document.getElementById(id).value = '');
+          toast('Created');
+          await loadScanners();
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function rotateSecret(id) {
+        if (!confirm('Rotate webhook secret for ' + id + '? The old URL will stop working.')) return;
+        try {
+          const data = await api('/api/admin/scanners/' + encodeURIComponent(id) + '/rotate-secret', { method: 'POST' });
+          toast('Rotated. New URL copied.');
+          navigator.clipboard?.writeText(data.scanner.webhook_url).catch(() => {});
+          await loadScanners();
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function deleteScanner(id, name) {
+        if (!confirm('Delete scanner "' + name + '"? This cannot be undone.')) return;
+        try {
+          await api('/api/admin/scanners/' + encodeURIComponent(id), { method: 'DELETE' });
+          toast('Deleted');
+          await loadScanners();
+        } catch (err) { toast(err.message, false); }
+      }
+
+      async function toggleLive(id, live) {
+        try {
+          const all = await api('/api/admin/scanners');
+          const s = all.scanners.find(x => x.id === id);
+          if (!s) return;
+          await api('/api/admin/scanners', { method: 'POST', body: JSON.stringify({ id, name: s.name, url: s.url, tier: s.tier, cat: s.cat, bias: s.bias, descr: s.descr, live: !!live }) });
+          await loadScanners();
+        } catch (err) { toast(err.message, false); }
+      }
+
+      function copyWebhook(url) {
+        navigator.clipboard?.writeText(url).then(() => toast('Webhook URL copied'));
+      }
+
+      function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]); }
+      function escapeAttr(s) { return escapeHtml(s); }
+
+      // Auto-login if token saved.
+      if (adminToken) {
+        api('/api/admin/stats').then(showAdmin).catch(() => {
+          adminToken = null; localStorage.removeItem(TOKEN_KEY);
+        });
+      }
+    </script>
+  </body>
+</html>
