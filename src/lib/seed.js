@@ -56,16 +56,21 @@ export function slugify(name) {
     .slice(0, 80);
 }
 
+// Deterministic webhook secret derived from SECRET_SALT + scanner id.
+// When SECRET_SALT is set, secrets are stable across redeploys (DB wipes on free tier).
+// When SECRET_SALT is unset, falls back to a random secret (legacy / dev mode).
+export function deriveSecret(scannerId) {
+  const salt = process.env.SECRET_SALT;
+  if (!salt) return crypto.randomBytes(16).toString('hex');
+  return crypto.createHmac('sha256', salt).update(scannerId).digest('hex').slice(0, 32);
+}
+
 export function seedIfEmpty() {
-  const row = db.prepare('SELECT COUNT(*) as c FROM scanners').get();
-  if (row.c > 0) {
-    console.log(`[seed] scanners already seeded (${row.c})`);
-    return;
-  }
   const insert = db.prepare(
     `INSERT INTO scanners (id, name, url, tier, cat, bias, descr, live, webhook_secret, created_at, sort_order)
      VALUES (@id, @name, @url, @tier, @cat, @bias, @descr, @live, @webhook_secret, @created_at, @sort_order)`,
   );
+  const updateSecret = db.prepare('UPDATE scanners SET webhook_secret = ? WHERE id = ?');
   const tx = db.transaction((rows) => {
     rows.forEach((r) => insert.run(r));
   });
@@ -86,12 +91,35 @@ export function seedIfEmpty() {
       cat: s.cat,
       bias: s.bias,
       descr: s.descr,
-      live: 1, // all live by default; admin can toggle
-      webhook_secret: crypto.randomBytes(16).toString('hex'),
+      live: 1,
+      webhook_secret: deriveSecret(candidate),
       created_at: now,
       sort_order: i,
     };
   });
-  tx(rows);
-  console.log(`[seed] inserted ${rows.length} scanners`);
+
+  const existingCount = db.prepare('SELECT COUNT(*) as c FROM scanners').get().c;
+  if (existingCount === 0) {
+    tx(rows);
+    console.log(`[seed] inserted ${rows.length} scanners (secrets ${process.env.SECRET_SALT ? 'derived' : 'random'})`);
+    return;
+  }
+
+  // Already seeded — if SECRET_SALT is set, reconcile secrets to match the deterministic value.
+  if (process.env.SECRET_SALT) {
+    let updated = 0;
+    const reconcile = db.transaction(() => {
+      for (const r of rows) {
+        const existing = db.prepare('SELECT webhook_secret FROM scanners WHERE id = ?').get(r.id);
+        if (existing && existing.webhook_secret !== r.webhook_secret) {
+          updateSecret.run(r.webhook_secret, r.id);
+          updated++;
+        }
+      }
+    });
+    reconcile();
+    console.log(`[seed] scanners already seeded (${existingCount}); reconciled ${updated} secrets to deterministic values`);
+  } else {
+    console.log(`[seed] scanners already seeded (${existingCount}); SECRET_SALT not set, secrets unchanged`);
+  }
 }
