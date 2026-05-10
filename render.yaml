@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ca-raj-public
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        sync: false
+    disk:
+      name: scanner-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
